@@ -29,7 +29,7 @@ jobs:
           # Remove existing fastlane
           sudo gem uninstall fastlane --all --force || true
           # Install the patched version from PR #29596
-          sudo gem specific_install https://github.com/hugomarisco/fastlane.git --branch=fix/bundle-id-capabilities-relationship
+          sudo gem specific_install https://github.com/hugomarisco/fastlane.git --branch=patch-2
           echo "Patched fastlane version:"
           fastlane --version
         
