@@ -11,7 +11,7 @@ import LoopKit
 import NightscoutKit
 import WidgetKit
 
-public enum GlucoseTimeLineEntry: TimelineEntry {
+public enum GlucoseTimeLineEntry: TimelineEntry, Hashable {
     case success(GlucoseTimelineValue)
     case failure(GlucoseTimeLineEntryError)
     
@@ -46,9 +46,20 @@ public enum GlucoseTimeLineEntry: TimelineEntry {
     public static func previewsEntry() -> GlucoseTimeLineEntry {
         return GlucoseTimeLineEntry(value: GlucoseTimelineValue.previewsValue())
     }
+    
+    public static func == (lhs: GlucoseTimeLineEntry, rhs: GlucoseTimeLineEntry) -> Bool {
+        switch (lhs, rhs) {
+        case (.success(let lhsValue), .success(let rhsValue)):
+            return lhsValue == rhsValue
+        case (.failure(let lhsError), .failure(let rhsError)):
+            return lhsError == rhsError
+        default:
+            return false
+        }
+    }
 }
 
-public struct GlucoseTimelineValue {
+public struct GlucoseTimelineValue: Hashable {
     // TODO: It may be best to use the Looper ID and Looper name. Maybe introduce an entry configuration object for those? Need to consider if the name changes in Loop.
     public let looper: Looper
     public let glucoseSample: NewGlucoseSample
@@ -93,6 +104,21 @@ public struct GlucoseTimelineValue {
             date: date
         )
     }
+    
+    public static func == (lhs: GlucoseTimelineValue, rhs: GlucoseTimelineValue) -> Bool {
+        return lhs.looper.identifier == rhs.looper.identifier &&
+               lhs.glucoseSample.date == rhs.glucoseSample.date &&
+               lhs.treatmentData.creationDate == rhs.treatmentData.creationDate &&
+               lhs.date == rhs.date
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(looper.identifier)
+        hasher.combine(glucoseSample.date)
+        hasher.combine(treatmentData.creationDate)
+        hasher.combine(date)
+    }
+    
     
     public static func previewsValue() -> GlucoseTimelineValue {
         var recentSamples = [NewGlucoseSample]()
@@ -139,11 +165,23 @@ public struct GlucoseTimelineValue {
     }
 }
 
-public struct GlucoseTimeLineEntryError: LocalizedError {
+public struct GlucoseTimeLineEntryError: LocalizedError, Hashable {
     let error: Error
     public let date: Date
     public let looper: Looper?
     public var errorDescription: String? {
         return error.localizedDescription
+    }
+    
+    public static func == (lhs: GlucoseTimeLineEntryError, rhs: GlucoseTimeLineEntryError) -> Bool {
+        return lhs.error.localizedDescription == rhs.error.localizedDescription &&
+               lhs.date == rhs.date &&
+               lhs.looper?.identifier == rhs.looper?.identifier
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(error.localizedDescription)
+        hasher.combine(date)
+        hasher.combine(looper?.identifier)
     }
 }
